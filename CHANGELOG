@@ -1,0 +1,17 @@
+0.9 => 1.0
+=============
+This package version is now compatible with the translation package CarneadesIntoDung. 
+See http://hackage.haskell.org/package/CarneadesIntoDung/
+
+This package has furthermore been significantly extended and now includes:
+
+* Preferred, stable and semi-stable semantics along with all definitions from
+   Caminada's paper "An Algorithm for Computing Semi-Stable Semantics".
+
+* An Input module, allowing files in standard CEGARTIX/PrefSat format to be parsed.
+
+* An Output module, allowing AFs in this package to be outputted in standard
+  CEGARTIX/PrefSat format.
+
+* A main executable, allowing input files to be read, argumentation frameworks
+  to be outputted and evaluated.

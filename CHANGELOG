@@ -1,3 +1,12 @@
+<<<<<<< HEAD
+1.0 => 1.0.0.1
+==============
+* Fixed the record declaration in Main.hs.
+
+* Added an example file.
+
+=======
+>>>>>>> f6bf86df65ed1e6185afe157c69c5660b8ef523b
 0.9 => 1.0
 =============
 This package version is now compatible with the translation package CarneadesIntoDung. 

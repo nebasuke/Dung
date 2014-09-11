@@ -21,19 +21,40 @@ import Text.Parsec
 import Text.Parsec.String (Parser)
 import Text.Parsec.Char (char, string)
 import qualified Text.Parsec.Token as P
+<<<<<<< HEAD
+import Text.Parsec.Language(haskellStyle)
+=======
 import Text.Parsec.Language(emptyDef)
+>>>>>>> f6bf86df65ed1e6185afe157c69c5660b8ef523b
 import Text.Parsec.Error(errorMessages, messageString)
 import Data.Either (partitionEithers)
 
 lexer :: P.TokenParser ()
+<<<<<<< HEAD
+lexer = P.makeTokenParser haskellStyle
+=======
 lexer = P.makeTokenParser emptyDef
+>>>>>>> f6bf86df65ed1e6185afe157c69c5660b8ef523b
 
 whiteSpace :: Parser ()
 whiteSpace = P.whiteSpace lexer
 
+<<<<<<< HEAD
+identifier :: Parser String
+identifier = P.identifier lexer
+
+stringLiteral :: Parser String
+stringLiteral = P.stringLiteral lexer
+
+-- |An argument name consists of one or more letters and digits
+-- or a string literal.
+argName :: Parser String
+argName =  try identifier <|> stringLiteral
+=======
 -- |An argument name consists of one or more letters and digits.
 argName :: Parser String
 argName = many1 alphaNum <?> "Argument name"
+>>>>>>> f6bf86df65ed1e6185afe157c69c5660b8ef523b
 
 -- |A complete argument consists of @arg(argName).@
 pArgument :: Parser String
@@ -60,9 +81,15 @@ pAttack = do
 -- |Parses one attack or argument and returns the result
 -- in the 'Either' data type.
 pArgOrAttack :: Parser (Either String (String, String))
+<<<<<<< HEAD
+pArgOrAttack = try (do arg <- pArgument 
+                       whiteSpace
+                       return $ Left arg)
+=======
 pArgOrAttack = (try (do arg <- pArgument 
                         whiteSpace
                         return $ Left arg))
+>>>>>>> f6bf86df65ed1e6185afe157c69c5660b8ef523b
                <|> 
                do atk <- pAttack
                   whiteSpace
@@ -80,4 +107,8 @@ pAF = do
 -- |Parses a 'String' containing multiple arguments/attacks. 
 -- If parsing fails, it propagates the parse error.
 parseAF :: String -> Either ParseError (DungAF String)
+<<<<<<< HEAD
+parseAF = parse pAF ""
+=======
 parseAF input = parse pAF "" input
+>>>>>>> f6bf86df65ed1e6185afe157c69c5660b8ef523b

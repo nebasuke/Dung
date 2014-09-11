@@ -293,7 +293,11 @@ isComplete af labs = null $
 -- (w.r.t. set inclusion).
 isGrounded :: Eq arg => DungAF arg -> [Labelling arg] -> Labelling arg -> Bool
 isGrounded af labss labs = isComplete af labs && 
+<<<<<<< HEAD
+                           all (inLab labs `subset`) (map inLab labss)
+=======
                            and (map (inLab labs `subset`) (map inLab labss))
+>>>>>>> f6bf86df65ed1e6185afe157c69c5660b8ef523b
 
 -- Definition 8 of Caminada, preferred labelling
 -- |Let 'labs' be a complete labelling, i.e. @isComplete af labs@, we say that 
@@ -301,7 +305,11 @@ isGrounded af labss labs = isComplete af labs &&
 -- (w.r.t. set inclusion).
 isPreferred :: Eq arg => DungAF arg -> [Labelling arg] -> Labelling arg -> Bool
 isPreferred af labss labs = isComplete af labs && 
+<<<<<<< HEAD
+                            all (not . (inLab labs `subset` )) (map inLab (delete labs labss))
+=======
                             and (map (not . (inLab labs `subset` )) (map inLab (delete labs labss)))
+>>>>>>> f6bf86df65ed1e6185afe157c69c5660b8ef523b
 
 -- Definition 8 of Caminada, stable labelling
 -- |Let 'labs' be a complete labelling, i.e. 'isComplete af labs', we say that 
@@ -316,8 +324,13 @@ isStable af labss labs = isComplete af labs &&
 -- (w.r.t. set inclusion).
 isSemiStable :: Eq arg => DungAF arg -> [Labelling arg] -> Labelling arg -> Bool
 isSemiStable af labss labs = isComplete af labs && 
+<<<<<<< HEAD
+                             all (undecLab labs `subset`) 
+                                 (map undecLab labss)
+=======
                              and (map (undecLab labs `subset`) 
                                       (map undecLab labss))
+>>>>>>> f6bf86df65ed1e6185afe157c69c5660b8ef523b
 
 -- Definition 9 of Caminada
 -- |Given an AF, a labelling labs and an illegally in argument a in the af, 
@@ -377,8 +390,13 @@ complete af@(AF args atk) =
             []          -> case filter (illegallyIn af labs) labs of
                              [] -> [labs]
                              ills -> concatMap (complete' af) $
+<<<<<<< HEAD
+                                       map (transitionStep af labs . fst) 
+                                           ills
+=======
                                        map (transitionStep af labs) 
                                            (map fst ills)
+>>>>>>> f6bf86df65ed1e6185afe157c69c5660b8ef523b
             ((a,_) : _) -> complete' af (transitionStep af labs a)
  in nub . map sort $ complete' af allInArgs
 

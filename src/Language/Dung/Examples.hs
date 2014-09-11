@@ -238,7 +238,11 @@ exampleAF4 = AF [a, b, c, d, e] [(a, b), (b, a), (b, c), (c, d), (d, e), (e, c)]
 -- This is given as a literal string to 'parseAF'. 
 exampleAF5 :: DungAF AbsArg
 exampleAF5 = case 
+<<<<<<< HEAD
+  parseAF 
+=======
  (parseAF 
+>>>>>>> f6bf86df65ed1e6185afe157c69c5660b8ef523b
     "arg(a).\
     \arg(b).\
     \arg(c).\
@@ -254,7 +258,11 @@ exampleAF5 = case
     \att(e,g).\
     \att(f,e).\
     \att(g,f)."
+<<<<<<< HEAD
+      of 
+=======
     ) of 
+>>>>>>> f6bf86df65ed1e6185afe157c69c5660b8ef523b
   Left err -> error (show err)
   Right af -> af
 
@@ -262,11 +270,19 @@ exampleAF5 = case
 -- i.e. @toCegartix exampleAF@.
 --
 -- >>> putStr output
+<<<<<<< HEAD
+-- arg("A").
+-- arg("B").
+-- arg("C").
+-- att("A","B").
+-- att("B","C").
+=======
 -- arg(A).
 -- arg(B).
 -- arg(C).
 -- att(A,B).
 -- att(B,C).
+>>>>>>> f6bf86df65ed1e6185afe157c69c5660b8ef523b
 output :: String
 output = toCegartix exampleAF
 
@@ -274,10 +290,17 @@ output = toCegartix exampleAF
 -- i.e. @toCegartix exampleAF2@.
 --
 -- >>> putStr output2
+<<<<<<< HEAD
+-- arg("A").
+-- arg("B").
+-- att("A","B").
+-- att("B","A").
+=======
 -- arg(A).
 -- arg(B).
 -- att(A,B).
 -- att(B,A).
+>>>>>>> f6bf86df65ed1e6185afe157c69c5660b8ef523b
 output2 :: String
 output2 = toCegartix exampleAF2
 
@@ -285,6 +308,16 @@ output2 = toCegartix exampleAF2
 -- i.e. @toCegartix exampleAF3@.
 --
 -- >>> putStr output3
+<<<<<<< HEAD
+-- arg("A").
+-- arg("B").
+-- arg("C").
+-- arg("D").
+-- att("A","A").
+-- att("A","C").
+-- att("B","C").
+-- att("C","D").
+=======
 -- arg(A).
 -- arg(B).
 -- arg(C).
@@ -293,6 +326,7 @@ output2 = toCegartix exampleAF2
 -- att(A,C).
 -- att(B,C).
 -- att(C,D).
+>>>>>>> f6bf86df65ed1e6185afe157c69c5660b8ef523b
 output3 :: String
 output3 = toCegartix exampleAF3
 
@@ -300,6 +334,19 @@ output3 = toCegartix exampleAF3
 -- i.e. @toCegartix exampleAF4@.
 --
 -- >>> putStr output4
+<<<<<<< HEAD
+-- arg("A").
+-- arg("B").
+-- arg("C").
+-- arg("D").
+-- arg("E").
+-- att("A","B").
+-- att("B","A").
+-- att("B","C").
+-- att("C","D").
+-- att("D","E").
+-- att("E","C").
+=======
 -- arg(A).
 -- arg(B).
 -- arg(C).
@@ -311,6 +358,7 @@ output3 = toCegartix exampleAF3
 -- att(C,D).
 -- att(D,E).
 -- att(E,C).
+>>>>>>> f6bf86df65ed1e6185afe157c69c5660b8ef523b
 output4 :: String
 output4 = toCegartix exampleAF4
 

@@ -1,8 +1,12 @@
 name:          Dung
 category:      Argumentation, Embedded, AI
+<<<<<<< HEAD
+version:       1.0.0.1
+=======
 version:       1.0
+>>>>>>> f6bf86df65ed1e6185afe157c69c5660b8ef523b
 license:       BSD3
-cabal-version: >= 1.2
+cabal-version: >= 1.6
 license-file:  LICENSE
 author:        Bas van Gijzel
 maintainer:    Bas van Gijzel <bmv@cs.nott.ac.uk>
@@ -21,6 +25,10 @@ build-type:    Simple
 
 Extra-Source-Files:
                            CHANGELOG
+<<<<<<< HEAD
+                           exampleaf.txt
+=======
+>>>>>>> f6bf86df65ed1e6185afe157c69c5660b8ef523b
 
 Library
   build-depends:

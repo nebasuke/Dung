@@ -5,8 +5,10 @@ module Language.Dung.AF
    DungAF(..), 
    setAttacks, aplus, amin, argplus, argmin, 
    conflictFree, acceptable, f, admissible, 
-   -- * Grounded, preferred, semi-stable and stable semantics through fixpoints
-   groundedF,
+   -- * Grounded, complete, preferred and stable semantics through fixpoints
+   groundedF, groundedF', completeF, preferredF, stableF,
+   -- * Definitions of a preferred and stable extension
+   isPreferredExt, isStableExt,
    -- * Basic labelling definitions
    -- |The following functions are implementations of the 
    -- definitions in \"An algorithm for Computing Semi-Stable 
@@ -15,6 +17,7 @@ module Language.Dung.AF
    Status(..), Labelling(..), 
    inLab, outLab, undecLab, 
    allIn, allOut, allUndec,
+   powerLabel,
    unattacked, attacked, 
    labAttackers, illegallyIn, illegallyOut, illegallyUndec,
    legallyIn, legallyOut, legallyUndec,
@@ -31,13 +34,44 @@ module Language.Dung.AF
    completeExt, preferredExt, stableExt, semiStableExt
  )
  where
-import Data.List (intersect, (\\), partition, delete, nub, sort)
+import Data.List (partition, delete, sort)
+-- For the implementation of intersect, (\\) and nub
+import qualified Data.Set as Set
+import qualified Data.Map.Strict as Map
+-- import Prelude hiding ((\\))
 
+-- Haskell library's intersect, (\\) and nub only require an Eq instance.
+-- If we have an Ord instance as well, it can be sped up significantly.
+-- I therefore use intersect, (\\) and nub from https://github.com/nh2/haskell-ordnub 
+-- by Niklas Hambuechen
+intersect :: (Ord a) => [a] -> [a] -> [a]
+intersect a b = filter (`Set.member` bSet) a
+  where
+    bSet = Set.fromList b
+
+nub :: (Ord a) => [a] -> [a]
+nub = go Set.empty
+  where
+    go _ [] = []
+    go s (x:xs) = if x `Set.member` s then go s xs
+                                      else x : go (Set.insert x s) xs
+
+infix 5 \\
+
+(\\) :: (Ord a) => [a] -> [a] -> [a]
+a \\ b = go initHist a
+  where
+    initHist = Map.fromListWith (+) [ (x, 1 :: Int) | x <- b ]
+
+    go _    []     = []
+    go hist (x:xs) = case Map.lookup x hist of
+      Just n | n > 0 ->     go (Map.insert x (n-1) hist) xs
+      _              -> x : go hist                      xs
 
 -- |An abstract argumentation framework is a set of arguments 
 -- (represented as a list) and an attack relation on these arguments. 
 data DungAF arg = AF [arg] [(arg, arg)]
-  deriving (Eq, Show)
+  deriving (Eq, Ord, Show)
 
 -- |Given an argumentation framework, determines whether args 
 -- (subset of the arguments in the AF), attacks an argument arg (in the AF).
@@ -57,12 +91,12 @@ amin (AF args atk) a = [b | (b, a') <- atk, a == a']
 
 -- |Given an argumentation framework, determines the set of arguments
 -- that are attacked by the given subset of arguments (in the AF).
-argplus :: Eq arg => DungAF arg -> [arg] -> [arg]
+argplus :: Ord arg => DungAF arg -> [arg] -> [arg]
 argplus af = nub . concatMap (aplus af)
 
 -- |Given an argumentation framework, determines the set of arguments
 -- that attack a given subset of arguments (in the AF).
-argmin :: Eq arg => DungAF arg -> [arg] -> [arg]
+argmin :: Ord arg => DungAF arg -> [arg] -> [arg]
 argmin af = nub . concatMap (amin af)
 
 -- |Given an argumentation framework, determines whether args 
@@ -83,13 +117,13 @@ f :: Eq arg => DungAF arg -> [arg] -> [arg]
 f af@(AF args' _) args = [a | a <- args', acceptable af a args]  
 
 -- Returns 'True' if 'xs' is a subset of 'ys'
-subset :: Eq a => [a] -> [a] -> Bool
+subset :: Ord a => [a] -> [a] -> Bool
 xs `subset` ys = null (xs \\ ys)
 
 -- |Given an argumentation framework, determines whether 
 -- the set of arguments 'args' (subset of the arguments in the AF) is admissible,
 -- i.e. if 'args' is 'conflictFree' and args is a subset of @f af args@
-admissible :: Eq arg =>  DungAF arg -> [arg] -> Bool
+admissible :: Ord arg =>  DungAF arg -> [arg] -> Bool
 admissible af args = conflictFree af args && args `subset` f af args 
 
 -- alternatively: 
@@ -106,14 +140,63 @@ admissible af args = conflictFree af args && args `subset` f af args
 -- |Given a characteristic function f, computes the grounded extension
 -- by iterating on the empty set (list) until it reaches a fixpoint.
 groundedF :: Eq arg => ([arg] -> [arg]) -> [arg]
-groundedF f = groundedF' f []
-  where  groundedF' f args 
+groundedF f = step f []
+  where  step f args 
            | f args == args  = args
-           | otherwise       = groundedF' f (f args)
+           | otherwise       = step f args
 
+-- |Given a characteristic function f, computes the grounded extension
+-- by iterating on the empty set (list) until it reaches a fixpoint.
+-- Strict version.
+groundedF'  :: Eq arg => ([arg] -> [arg]) -> [arg]
+groundedF' f = step f []
+  where  step f args 
+           | f args == args  = args
+           | otherwise       = 
+            let args' = f args
+            in args' `seq` step f args'
+                        
+-- Computes the powerset of a list.
+powerset :: [a] -> [[a]]
+powerset []     = [[]]
+powerset (x:xs) = powerset xs ++ map (x:) (powerset xs)
 
+-- |Given an argumentation framework, computes all complete extension, 
+-- by taking all sets of arguments of the powerset of arguments of that AF, 
+-- given that they are admissible and @f af == f@.
+completeF :: Ord arg => DungAF arg -> [[arg]]
+completeF af@(AF args _) = 
+  let fAF = f af 
+  in  filter (\ x -> admissible af x && x == fAF x) (powerset args)
 
--------------------------------------------------------------------------------
+-- |Given an argumentation framework, computes all preferred extensions,
+-- by applying a filter on the complete extensions. Note that this, 
+-- naive definition is faster than the current algorithm implementation.
+preferredF :: Ord arg => DungAF arg -> [[arg]]
+preferredF af@(AF args _) = 
+  let cs = completeF af
+  in filter (isPreferredExt af cs) cs
+
+-- |Given an argumentation framework, computes all stable extensions,
+-- by applying a filter on the complete extensions. Note that this, 
+-- naive definition is faster than the current algorithm implementation.
+stableF :: Ord arg => DungAF arg -> [[arg]]
+stableF af@(AF args _) = 
+  let ps = preferredF af
+  in  filter (isStableExt af) ps
+
+-- |A complete extension is also a preferred extension if it is not a 
+-- subset of one of the other extensions. 
+isPreferredExt :: Ord arg => DungAF arg -> [[arg]] -> [arg] -> Bool
+isPreferredExt af exts ext = all (not . (ext `subset`)) 
+                                 (delete ext exts)
+
+-- |S is a stable extension is an extension iff it is equal to the set 
+-- of arguments not attacked by S.
+isStableExt :: Ord arg => DungAF arg -> [arg] -> Bool 
+isStableExt af@(AF args _) ext = filter (unattacked (args \\ ext) af) args == ext
+
+-------------------------------------------------------------------------
 -- The following functions are implementations of the 
 -- definitions in \"An algorithm for Computing Semi-Stable 
 -- Semantics\" in \"Symbolic and Quantitative Approaches to 
@@ -163,7 +246,7 @@ allUndec = map (\ a -> (a, Undecided))
 
 -- |Given a list of arguments that are 'Out' in an argumentation framework af, 
 -- an argument 'arg' is unattacked if the list of its attackers, ignoring the outs, is empty. 
-unattacked :: Eq arg => [arg] -> 
+unattacked :: Ord arg => [arg] -> 
               DungAF arg -> arg -> Bool
 unattacked outs (AF _ def) arg = 
   let attackers = [a | (a, b) <- def, arg == b]
@@ -171,22 +254,29 @@ unattacked outs (AF _ def) arg =
 
 -- |Given a list of arguments that are 'In' in an argumentation framework af, 
 -- an argument 'arg' is attacked if there exists an attacker that is 'In'.
-attacked :: Eq arg => [arg] -> 
+attacked :: Ord arg => [arg] -> 
             DungAF arg -> arg -> Bool
 attacked ins (AF _ def) arg = 
   let attackers = [a | (a, b) <- def, arg == b]
   in not (null (attackers `intersect` ins))
 
+-- |Computes a list with all possible labellings.
+powerLabel :: [arg] -> [Labelling arg]
+powerLabel []     = [[]]
+powerLabel (x:xs) = map ((x,In):)        (powerLabel xs) 
+                 ++ map ((x,Out):)       (powerLabel xs) 
+                 ++ map ((x,Undecided):) (powerLabel xs)
+------  
 
 -- |Computes the grounded labelling for a Dung argumentation framework,
 -- returning a (unique) list of arguments with statuses.
 -- 
 -- Based on section 4.1 of Proof Theories and Algorithms for Abstract Argumentation Frameworks
 -- by Modgil and Caminada.
-grounded :: Eq arg => DungAF arg -> Labelling arg
+grounded :: Ord arg => DungAF arg -> Labelling arg
 grounded af@(AF args _) = grounded' [] [] args af
  where 
- grounded' :: Eq a => [a] -> [a] -> 
+ grounded' :: Ord a => [a] -> [a] -> 
               [a] -> DungAF a -> [(a, Status)]
  grounded' ins outs [] _   
   =    allIn ins 
@@ -205,7 +295,7 @@ grounded af@(AF args _) = grounded' [] [] args af
 
 -- |The grounded extension of an argumentation framework is just the grounded labelling, 
 -- keeping only those arguments that were labelled 'In'.
-groundedExt :: Eq arg => DungAF arg -> [arg]
+groundedExt :: Ord arg => DungAF arg -> [arg]
 groundedExt af = [arg | (arg, In) <- grounded af] 
 
 -- |Given an argumentation framework, determines the list of attackers of an argument, 
@@ -291,7 +381,7 @@ isComplete af labs = null $
 -- |Let 'labs' be a complete labelling, i.e. @isComplete af labs@, we say that 
 -- labs is a grounded labelling iff @inLab labs@ is minimal 
 -- (w.r.t. set inclusion).
-isGrounded :: Eq arg => DungAF arg -> [Labelling arg] -> Labelling arg -> Bool
+isGrounded :: Ord arg => DungAF arg -> [Labelling arg] -> Labelling arg -> Bool
 isGrounded af labss labs = isComplete af labs && 
                            all (inLab labs `subset`) (map inLab labss)
 
@@ -299,9 +389,10 @@ isGrounded af labss labs = isComplete af labs &&
 -- |Let 'labs' be a complete labelling, i.e. @isComplete af labs@, we say that 
 -- labs is a preferred labelling iff @inLab labs@ is maximal 
 -- (w.r.t. set inclusion).
-isPreferred :: Eq arg => DungAF arg -> [Labelling arg] -> Labelling arg -> Bool
+isPreferred :: Ord arg => DungAF arg -> [Labelling arg] -> Labelling arg -> Bool
 isPreferred af labss labs = isComplete af labs && 
-                            all (not . (inLab labs `subset` )) (map inLab (delete labs labss))
+                            all (not . (inLab labs `subset` )) 
+                                (map inLab (delete labs labss))
 
 -- Definition 8 of Caminada, stable labelling
 -- |Let 'labs' be a complete labelling, i.e. 'isComplete af labs', we say that 
@@ -314,7 +405,7 @@ isStable af labss labs = isComplete af labs &&
 -- |Let 'labs' be a complete labelling, i.e. @isComplete af labs@, we say that 
 -- labs is a semi-stable labelling iff @undecLab labs@ is minimal 
 -- (w.r.t. set inclusion).
-isSemiStable :: Eq arg => DungAF arg -> [Labelling arg] -> Labelling arg -> Bool
+isSemiStable :: Ord arg => DungAF arg -> [Labelling arg] -> Labelling arg -> Bool
 isSemiStable af labss labs = isComplete af labs && 
                              all (undecLab labs `subset`) 
                                  (map undecLab labss)
@@ -361,13 +452,13 @@ superIllegallyIn _  _    _      = False
 -- Based on the Algorithm of Caminada
 -- Instead of using a search tree and keeping a list of potential semi-stable
 -- labellings, we remove the checks. 
--- Note that this actually gives us an algorithm for computing the complete 
--- labellings, allowing us to then filter out the grounded, preferred,
--- stable or semi-stable labellings dependent on what should be maximal or 
--- minimal
--- |Computes all complete labellings for a Dung argumentation framework. This
--- is based on Caminada's algorithm for computing semi-stable labellings, 
--- with all checks removed.
+-- Note that this actually gives us an algorithm for computing at least the 
+-- maximal and minimal complete labellings, allowing us to then filter out 
+-- the grounded, preferred, stable or semi-stable labellings dependent on 
+-- what should be maximal or minimal.
+-- |Computes maximal and minimal complete labellings for a Dung argumentation 
+-- framework. This is based on Caminada's algorithm for computing semi-stable
+-- labellings, with all checks removed.
 complete :: Ord arg => DungAF arg -> [Labelling arg]
 complete af@(AF args atk) = 
  let allInArgs = allIn args
@@ -381,7 +472,7 @@ complete af@(AF args atk) =
                                            ills
             ((a,_) : _) -> complete' af (transitionStep af labs a)
  in nub . map sort $ complete' af allInArgs
-
+ 
 -- |Computes all preferred labellings for a Dung argumentation framework, by
 -- taking the maximally in complete labellings.
 preferred :: Ord arg => DungAF arg -> [Labelling arg]

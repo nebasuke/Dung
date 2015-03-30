@@ -1,3 +1,25 @@
+1.0.0.1 => 1.1
+==============
+This package version is now compatible with the command-line application for 
+the ICCMA competition. See: https://github.com/nebasuke/DungICCMA and the
+competition website: http://argumentationcompetition.org/2015/index.html
+
+This package has again been significantly extended and now includes:
+
+* Strict version of the grounded fixpoint semantics.
+
+* Definitions of what it means to be a preferred and stable extension.
+
+* Naive implementations of complete, preferred and stable semantics using 
+  the characteristic function. The fixpoint definitions are actually FASTER
+  than the fancy algorithm implementation. 
+  
+* Included the fast implementations of intersect, nub and (\\) by Niklas 
+  Hambuechen. 
+  
+* Added some clarifying text for the "complete" labelling.
+
+
 1.0 => 1.0.0.1
 ==============
 * Fixed the record declaration in Main.hs.

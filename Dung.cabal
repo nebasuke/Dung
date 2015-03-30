@@ -1,6 +1,6 @@
 name:          Dung
 category:      Argumentation, Embedded, AI
-version:       1.0.0.1
+version:       1.1
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE

@@ -396,7 +396,7 @@ isPreferred af labss labs = isComplete af labs &&
 
 -- Definition 8 of Caminada, stable labelling
 -- |Let 'labs' be a complete labelling, i.e. 'isComplete af labs', we say that 
--- labs is a preferred labelling iff @undecLab(labs) == []@
+-- labs is a stable labelling iff @undecLab(labs) == []@
 isStable :: Eq arg => DungAF arg -> [Labelling arg] -> Labelling arg -> Bool
 isStable af labss labs = isComplete af labs && 
                          null (undecLab labs)

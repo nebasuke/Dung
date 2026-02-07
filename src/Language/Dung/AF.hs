@@ -143,7 +143,7 @@ groundedF :: Eq arg => ([arg] -> [arg]) -> [arg]
 groundedF f = step f []
   where  step f args 
            | f args == args  = args
-           | otherwise       = step f args
+           | otherwise       = step f (f args)
 
 -- |Given a characteristic function f, computes the grounded extension
 -- by iterating on the empty set (list) until it reaches a fixpoint.

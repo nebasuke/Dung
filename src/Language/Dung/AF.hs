@@ -1,5 +1,6 @@
--- | This module implements Dung's argumentation frameworks. 
-module Language.Dung.AF 
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
+-- | This module implements Dung's argumentation frameworks.
+module Language.Dung.AF
  (
     -- * Basic definitions  
    DungAF(..), 
@@ -14,14 +15,14 @@ module Language.Dung.AF
    -- definitions in \"An algorithm for Computing Semi-Stable 
    -- Semantics\" in \"Symbolic and Quantitative Approaches to Reasoning with
    -- Uncertainty\", pages 222--234, Springer, 2007.
-   Status(..), Labelling(..), 
+   Status(..), Labelling,
    inLab, outLab, undecLab, 
    allIn, allOut, allUndec,
    powerLabel,
    unattacked, attacked, 
    labAttackers, illegallyIn, illegallyOut, illegallyUndec,
    legallyIn, legallyOut, legallyUndec,
-   isAdmissible, isComplete, isPreferred, isStable, isSemiStable,
+   isAdmissible, isComplete, isGrounded, isPreferred, isStable, isSemiStable,
    transitionStep, terminatedTransition, superIllegallyIn,
    -- * Grounded, preferred, semi-stable and stable labellings
    -- |The following functions are implementations of the 
@@ -82,12 +83,12 @@ setAttacks (AF _ def) args arg
 -- |Given an argumentation framework, determines the set of arguments
 -- that are attacked by an argument (in the AF).
 aplus :: Eq arg => DungAF arg -> arg -> [arg]
-aplus (AF args atk) a = [b | (a', b) <- atk, a == a']
+aplus (AF _args atk) a = [b | (a', b) <- atk, a == a']
 
 -- |Given an argumentation framework, determines the set of arguments
 -- attacking an argument (in the AF).
 amin :: Eq arg => DungAF arg -> arg -> [arg]
-amin (AF args atk) a = [b | (b, a') <- atk, a == a']
+amin (AF _args atk) a = [b | (b, a') <- atk, a == a']
 
 -- |Given an argumentation framework, determines the set of arguments
 -- that are attacked by the given subset of arguments (in the AF).
@@ -173,7 +174,7 @@ completeF af@(AF args _) =
 -- by applying a filter on the complete extensions. Note that this, 
 -- naive definition is faster than the current algorithm implementation.
 preferredF :: Ord arg => DungAF arg -> [[arg]]
-preferredF af@(AF args _) = 
+preferredF af =
   let cs = completeF af
   in filter (isPreferredExt af cs) cs
 
@@ -181,14 +182,14 @@ preferredF af@(AF args _) =
 -- by applying a filter on the complete extensions. Note that this, 
 -- naive definition is faster than the current algorithm implementation.
 stableF :: Ord arg => DungAF arg -> [[arg]]
-stableF af@(AF args _) = 
+stableF af =
   let ps = preferredF af
   in  filter (isStableExt af) ps
 
 -- |A complete extension is also a preferred extension if it is not a 
 -- subset of one of the other extensions. 
 isPreferredExt :: Ord arg => DungAF arg -> [[arg]] -> [arg] -> Bool
-isPreferredExt af exts ext = all (not . (ext `subset`)) 
+isPreferredExt _af exts ext = all (not . (ext `subset`))
                                  (delete ext exts)
 
 -- |S is a stable extension is an extension iff it is equal to the set 
@@ -301,14 +302,14 @@ groundedExt af = [arg | (arg, In) <- grounded af]
 -- |Given an argumentation framework, determines the list of attackers of an argument, 
 -- from a given labelling, returning the labelled attackers. 
 labAttackers :: Eq arg => DungAF arg -> arg -> Labelling arg -> Labelling arg
-labAttackers (AF args atk) a labs = [lab | lab@(b, _) <- labs, (b, a) `elem` atk]
+labAttackers (AF _args atk) a labs = [lab | lab@(b, _) <- labs, (b, a) `elem` atk]
 
 -- Definition 5.1 of Caminada
 -- |Given an AF and 'Labelling',
 -- an argument a (in the AF) is illegally 'In' iff a is labelled 'In',
 -- but not all its attackers are labelled 'Out'.
 illegallyIn :: Eq arg => DungAF arg -> Labelling arg -> (arg, Status) -> Bool
-illegallyIn af labs (a, In) = not . null $ [lab | lab@(_, l) <- labAttackers af a labs, l /= Out]
+illegallyIn af labs (a, In) = not . null $ [()|  (_, l) <- labAttackers af a labs, l /= Out]
 illegallyIn _  _     _      = False
 
 -- Definition 5.2 of Caminada
@@ -316,7 +317,7 @@ illegallyIn _  _     _      = False
 -- an argument a (in the AF) is illegally 'Out' iff a is labelled 'Out'
 -- but does not have an attacker labelled 'In'.
 illegallyOut :: Eq arg => DungAF arg -> Labelling arg -> (arg, Status) -> Bool
-illegallyOut af labs (a, Out) = null [lab | lab@(_, In) <- labAttackers af a labs]
+illegallyOut af labs (a, Out) = null [() | (_, In) <- labAttackers af a labs]
 illegallyOut _  _    _        = False
 
 -- Definition 5.3 of Caminada
@@ -326,7 +327,7 @@ illegallyOut _  _    _        = False
 -- or it has an attacker that is labelled 'In'.
 illegallyUndec :: Eq arg => DungAF arg -> Labelling arg -> (arg, Status) -> Bool
 illegallyUndec af labs (a, Undecided) = and [l == Out | (_, l) <- labAttackers af a labs]
-                                        || (not . null) [lab | lab@(_, In) <- labAttackers af a labs] 
+                                        || (not . null) [() | (_, In) <- labAttackers af a labs]
 illegallyUndec _  _    _              = False
 
 
@@ -362,19 +363,19 @@ legallyUndec _  _    _                  = False
 -- |Given an AF, an admissible labelling is a 'Labelling' without arguments
 -- that are 'illegallyIn' and without arguments that are 'illegallyOut'.
 isAdmissible :: Eq arg => DungAF arg -> Labelling arg -> Bool
-isAdmissible af labs = null $ 
-                      [lab | lab@(a, In) <- labs, illegallyIn af labs lab] 
-                   ++ [lab | lab@(a, Out) <- labs, illegallyOut af labs lab] 
+isAdmissible af labs = null $
+                      [lab | lab@(_, In) <- labs, illegallyIn af labs lab]
+                   ++ [lab | lab@(_, Out) <- labs, illegallyOut af labs lab] 
 
 -- Definition 7 of Caminada
 -- |Given an AF, a complete labelling is a labelling without arguments
 -- that are 'illegallyIn', without arguments that are 'illegallyOut' and 
 -- without arguments that are 'illegallyUndec'.
 isComplete ::  Eq arg => DungAF arg -> Labelling arg -> Bool
-isComplete af labs = null $ 
-                   [lab | lab@(a, In) <- labs, illegallyIn af labs lab] 
-                ++ [lab | lab@(a, Out) <- labs, illegallyOut af labs lab] 
-                ++ [lab | lab@(a, Undecided) <- labs, illegallyUndec af labs lab]
+isComplete af labs = null $
+                   [lab | lab@(_, In) <- labs, illegallyIn af labs lab]
+                ++ [lab | lab@(_, Out) <- labs, illegallyOut af labs lab]
+                ++ [lab | lab@(_, Undecided) <- labs, illegallyUndec af labs lab]
 
 
 -- Definition 8 of Caminada, grounded labelling
@@ -398,8 +399,8 @@ isPreferred af labss labs = isComplete af labs &&
 -- |Let 'labs' be a complete labelling, i.e. 'isComplete af labs', we say that 
 -- labs is a stable labelling iff @undecLab(labs) == []@
 isStable :: Eq arg => DungAF arg -> [Labelling arg] -> Labelling arg -> Bool
-isStable af labss labs = isComplete af labs && 
-                         null (undecLab labs)
+isStable af _labss labs = isComplete af labs &&
+                          null (undecLab labs)
                             
 -- Definition 8 of Caminada, semi-stable labelling
 -- |Let 'labs' be a complete labelling, i.e. @isComplete af labs@, we say that 
@@ -421,12 +422,12 @@ transitionStep :: Eq arg => DungAF arg -> Labelling arg -> arg -> Labelling arg
 transitionStep af labs a = 
  let labs' = (a, Out) : delete (a, In) labs -- Step 1
      bs    = a : aplus af a -- bs = every b in {a} \cup a+
-     (newUndecs, rem) = partition (\ lab@(b, l) -> 
+     (newUndecs, rest) = partition (\ lab@(b, _l) ->
                                        b `elem` bs
                                     && illegallyOut af labs' lab)
                                   labs'
- in map (\ (a, _) -> (a, Undecided)) newUndecs
- ++ rem
+ in map (\ (x, _) -> (x, Undecided)) newUndecs
+ ++ rest
 
 
 -- Based on Definition 10 of Caminada
@@ -460,7 +461,7 @@ superIllegallyIn _  _    _      = False
 -- framework. This is based on Caminada's algorithm for computing semi-stable
 -- labellings, with all checks removed.
 complete :: Ord arg => DungAF arg -> [Labelling arg]
-complete af@(AF args atk) = 
+complete af@(AF args _atk) =
  let allInArgs = allIn args
      complete' :: Eq arg => DungAF arg -> Labelling arg -> [Labelling arg]
      complete' af labs =
@@ -476,21 +477,21 @@ complete af@(AF args atk) =
 -- |Computes all preferred labellings for a Dung argumentation framework, by
 -- taking the maximally in complete labellings.
 preferred :: Ord arg => DungAF arg -> [Labelling arg]
-preferred af@(AF args atk) = 
+preferred af =
  let completes = complete af 
  in filter (isPreferred af completes) completes
 
 -- |Computes all stable labellings for a Dung argumentation framework, by
 -- keeping only those labellings with no 'Undecided' labels.
 stable :: Ord arg => DungAF arg -> [Labelling arg]
-stable af@(AF args atk) = 
+stable af =
  let completes = complete af 
  in filter (isStable af completes) completes
 
 -- |Computes all semi-stable labellings for a Dung argumentation framework, by
 -- taking the minimally undecided complete labellings.
 semiStable :: Ord arg => DungAF arg -> [Labelling arg]
-semiStable af@(AF args atk) = 
+semiStable af =
  let completes = complete af 
  in filter (isSemiStable af completes) completes
 

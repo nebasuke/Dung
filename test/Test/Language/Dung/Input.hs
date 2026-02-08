@@ -15,9 +15,9 @@ tests = testGroup "Language.Dung.Input"
   ]
 
 -- Helper to unwrap a Right or fail the test
-expectRight :: Either a b -> IO b
+expectRight :: Show a => Either a b -> IO b
 expectRight (Right x) = return x
-expectRight (Left _)  = assertFailure "Expected Right but got Left" >> undefined
+expectRight (Left err) = assertFailure ("Expected Right but got Left: " ++ show err)
 
 parseTests :: TestTree
 parseTests = testGroup "parseAF"

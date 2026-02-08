@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wno-name-shadowing #-}
 -- | This module implements Dung's argumentation frameworks.
 module Language.Dung.AF
  (

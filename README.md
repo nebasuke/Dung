@@ -43,9 +43,9 @@ The `dungell` executable reads argumentation frameworks from files in
 CEGARTIX/PrefSat format:
 
 ```
-dungell --file exampleaf.txt --grounded
-dungell --file exampleaf.txt --preferred
-dungell --file exampleaf.txt --all
+dungell --filename exampleaf.txt --grounded
+dungell --filename exampleaf.txt --preferred
+dungell --filename exampleaf.txt --all
 ```
 
 ## License

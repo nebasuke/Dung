@@ -19,10 +19,8 @@ module Language.Dung.Input
 import Language.Dung.AF
 import Text.Parsec
 import Text.Parsec.String (Parser)
-import Text.Parsec.Char (char, string)
 import qualified Text.Parsec.Token as P
-import Text.Parsec.Language(haskellStyle)
-import Text.Parsec.Error(errorMessages, messageString)
+import Text.Parsec.Language (haskellStyle)
 import Data.Either (partitionEithers)
 
 lexer :: P.TokenParser ()
@@ -44,24 +42,24 @@ argName =  try identifier <|> stringLiteral
 
 -- |A complete argument consists of @arg(argName).@
 pArgument :: Parser String
-pArgument = do 
-               string "arg("
+pArgument = do
+               _ <- string "arg("
                arg <- argName
-               string ")."
+               _ <- string ")."
                whiteSpace
                return arg
 
 -- |A complete attack consists of @atk(argName,argName).@
 -- or @att(argName,argName).@.
 pAttack :: Parser (String, String)
-pAttack = do 
-             string "at"
-             string "t(" <|> string "k("
+pAttack = do
+             _ <- string "at"
+             _ <- string "t(" <|> string "k("
              arg1 <- argName
-             char ','
+             _ <- char ','
              whiteSpace
              arg2 <- argName
-             string ")."
+             _ <- string ")."
              return (arg1, arg2)
 
 -- |Parses one attack or argument and returns the result

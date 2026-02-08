@@ -27,6 +27,15 @@ module Language.Dung.Examples
 import Language.Dung.AF
 import Language.Dung.Input
 import Language.Dung.Output
+
+-- $setup
+-- >>> :{
+-- >>> let printList :: Show a => [a] -> IO ()
+-- >>>     printList [] = putStrLn "[]"
+-- >>>     printList [x] = do { putStrLn "[" ; putStrLn ("  " ++ show x) ; putStrLn "]" }
+-- >>>     printList xs = do { putStrLn "[" ; mapM_ (\x -> putStrLn ("  " ++ show x ++ ",")) (init xs) ; putStrLn ("  " ++ show (last xs)) ; putStrLn "]" }
+-- >>> :}
+
 -- | The simplest abstract argument is an argument identifiable by its name
 type AbsArg = String 
 
@@ -113,7 +122,7 @@ exampleAF = AF [a, b, c] [(a, b), (b, c)]
 -- and 'exampleAF2':
 --
 -- >>> groundedExt exampleAF
--- ["A", "C"]
+-- ["A","C"]
 -- >>> groundedExt exampleAF2
 -- []
 exampleAF2 :: DungAF AbsArg 
@@ -154,12 +163,12 @@ exampleAF3 = AF [a, b, c, d] [(a, a), (a, c), (b, c), (c, d)]
 -- The complete labellings of the argumentation framework 'exampleAF3'
 -- and 'exampleAF4':
 -- 
--- >>> complete exampleAF3
+-- >>> printList (complete exampleAF3)
 -- [
 --   [("A",Undecided),("B",In),("C",Out),("D",In)]
 -- ]
--- 
--- >>> complete exampleAF4
+--
+-- >>> printList (complete exampleAF4)
 -- [
 --   [("A",Out),("B",In),("C",Out),("D",In),("E",Out)],
 --   [("A",In),("B",Out),("C",Undecided),("D",Undecided),("E",Undecided)],
@@ -171,11 +180,11 @@ exampleAF3 = AF [a, b, c, d] [(a, a), (a, c), (b, c), (c, d)]
 -- The complete extensions of the argumentation frameworks 'exampleAF3'
 -- and 'exampleAF4':
 --
--- >>> completeExt exampleAF3
+-- >>> printList (completeExt exampleAF3)
 -- [
 --   ["B","D"]
 -- ]
--- >>> completeExt exampleAF4
+-- >>> printList (completeExt exampleAF4)
 -- [
 --   ["B","D"],
 --   ["A"],
@@ -187,14 +196,14 @@ exampleAF3 = AF [a, b, c, d] [(a, a), (a, c), (b, c), (c, d)]
 -- The semi-stable labellings of the argumentation framework 'exampleAF3'
 -- and 'exampleAF4':
 -- 
--- >>> semiStable exampleAF3
+-- >>> printList (semiStable exampleAF3)
 -- [
 --   [("A",Undecided),("B",In),("C",Out),("D",In)]
 -- ]
--- 
--- >>> semiStable exampleAF4
+--
+-- >>> printList (semiStable exampleAF4)
 -- [
---   [("A",Out),("B",In),("C",Out),("D",In),("E",Out)],
+--   [("A",Out),("B",In),("C",Out),("D",In),("E",Out)]
 -- ]
 --
 -- [semiStableExt:]
@@ -202,13 +211,13 @@ exampleAF3 = AF [a, b, c, d] [(a, a), (a, c), (b, c), (c, d)]
 -- The complete extensions of the argumentation frameworks 'exampleAF3'
 -- and 'exampleAF4':
 --
--- >>> semiStableExt exampleAF3
+-- >>> printList (semiStableExt exampleAF3)
 -- [
 --   ["B","D"]
 -- ]
--- >>> semiStableExt exampleAF4
+-- >>> printList (semiStableExt exampleAF4)
 -- [
---   ["B","D"],
+--   ["B","D"]
 -- ]
 --
 exampleAF4 :: DungAF AbsArg

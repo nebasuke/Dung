@@ -32,6 +32,7 @@ extra-doc-files:
   CHANGELOG.md
 
 extra-source-files:
+  LICENSE
   exampleaf.txt
   dungex.txt
 

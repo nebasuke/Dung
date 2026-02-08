@@ -4,11 +4,11 @@ version:       2.0.0.0
 license:       BSD-3-Clause
 license-file:  LICENSE
 author:        Bas van Gijzel
-maintainer:    Bas van Gijzel <bmv@cs.nott.ac.uk>
-copyright:     Copyright (C) 2014 Bas van Gijzel
+maintainer:    Bas van Gijzel <nenekotan+git@gmail.com>
+copyright:     Copyright (C) 2014-2026 Bas van Gijzel
 stability:     experimental
 category:      Argumentation, Embedded, AI
-homepage:      http://www.cs.nott.ac.uk/~bmv/Dung/
+homepage:      https://github.com/nebasuke/Dung
 synopsis:      An implementation of the Dung argumentation frameworks.
 description:
   An implementation of Dung's argumentation frameworks, an abstract

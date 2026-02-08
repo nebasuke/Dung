@@ -18,7 +18,7 @@ For the papers accompanying this library see:
   between argumentation models"
 - "A principled approach to the implementation of argumentation models"
 
-Available at <http://www.cs.nott.ac.uk/~bmv/Dung/>.
+Available at <https://scholar.google.com/citations?user=Xu4yjvwAAAAJ&hl>.
 
 ## Usage
 

@@ -22,7 +22,7 @@ description:
   For the papers accompanying this library see \"Towards a framework for
   the implementation and verification of translations between argumentation
   models\" and \"A principled approach to the implementation of argumentation
-  models\", available at <http://www.cs.nott.ac.uk/~bmv/Dung/>.
+  models\", available at <https://scholar.google.com/citations?user=Xu4yjvwAAAAJ&hl>.
 
 build-type:    Simple
 tested-with:   GHC == 9.4.8, GHC == 9.6.6, GHC == 9.8.4, GHC == 9.10.1
